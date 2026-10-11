@@ -1,0 +1,27 @@
+[Unit]
+Description=Queue worker (demo)
+After=network.target
+# Never start if a maintenance pass is mid-flight and holding the lock in
+# blocking mode for an extended check; worker itself retries the lock
+# non-blocking so a quick maintenance pass just delays one poll cycle.
+
+[Service]
+Type=simple
+User=queueworker
+Group=queueworker
+WorkingDirectory=/opt/deploy-recovery-demo
+ExecStartPre=/usr/bin/python3 /opt/deploy-recovery-demo/src/verify_deploy.py
+ExecStart=/usr/bin/python3 /opt/deploy-recovery-demo/src/queue_worker.py
+Restart=on-failure
+RestartSec=5
+# Finish the in-flight command before systemd sends SIGKILL.
+TimeoutStopSec=30
+KillSignal=SIGTERM
+
+# Minimal hardening — not the focus of this demo but free to include.
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/deploy-recovery-demo/queue /opt/deploy-recovery-demo/run /opt/deploy-recovery-demo/state.db /opt/deploy-recovery-demo/state.db-wal /opt/deploy-recovery-demo/state.db-shm
+
+[Install]
+WantedBy=multi-user.target

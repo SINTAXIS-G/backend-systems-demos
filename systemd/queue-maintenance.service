@@ -1,0 +1,13 @@
+[Unit]
+Description=Queue maintenance check (demo): identity verify + sqlite integrity + WAL checkpoint
+# Explicitly NOT "Conflicts=queue-worker.service" — the worker should keep
+# running; mutual exclusion is enforced at the application level via the
+# shared flock, not by stopping the worker unit. Conflicts= here would be
+# the wrong tool: it would take the worker down on every maintenance tick.
+
+[Service]
+Type=oneshot
+User=queueworker
+Group=queueworker
+WorkingDirectory=/opt/deploy-recovery-demo
+ExecStart=/usr/bin/python3 /opt/deploy-recovery-demo/src/maintenance_check.py
